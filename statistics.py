@@ -1,7 +1,6 @@
 # encoding=utf8
-import importlib.resources as pkgres
+
 from typing import List, Tuple, Union, Any, Optional
-from io import StringIO
 
 import numpy as np
 import pandas as pd
@@ -12,10 +11,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import matplotlib.lines as lines
 
-import NiaPy.data as pkg_data
-from NiaPy.util import cm
+from basicunit import cm
 
-__all__ = ['BasicStatistics', 'wilcoxonSignedRanks', 'friedmanNemenyi', 'wilcoxonTest', 'friedmanRanks']
 
 class BasicStatistics:
 	Name = ['BasicStatistics']
@@ -34,6 +31,7 @@ class BasicStatistics:
 	def standard_deviation(self) -> float: return self.array.std(ddof=1)
 
 	def generate_standard_report(self) -> str: return "Min: {0}, Max: {1}, Mean: {2}, Median: {3}, Std. {4}".format(self.min_value(), self.max_value(), self.mean(), self.median(), self.standard_deviation())
+
 
 def wilcoxonSignedRanks(a: np.ndarray, b: np.ndarray) -> Tuple[float, float, float]:
 	r"""Get rank values from signed wilcoxon test.
@@ -54,9 +52,11 @@ def wilcoxonSignedRanks(a: np.ndarray, b: np.ndarray) -> Tuple[float, float, flo
 	r_p, r_n = r_all + np.sum(r[np.where(y_diff > 0)]), r_all + np.sum(r[np.where(y_diff < 0)])
 	return r_p, r_n, np.min([r_p, r_n])
 
+
 def friedmanRanks(*arrs: List[np.ndarray]) -> np.ndarray:
 	r = np.asarray([stats.rankdata([arrs[j][i] for j in range(len(arrs))]) for i in range(len(arrs[0]))])
 	return np.asarray([np.sum(r[:, i]) / len(arrs[0]) for i in range(len(arrs))])
+
 
 def cd(alpha: float, k: float, n: float) -> float:
 	r"""Get critial distance for friedman test.
@@ -66,9 +66,10 @@ def cd(alpha: float, k: float, n: float) -> float:
 		k: Number of algorithms.
 		n: Number of algorithm results.
 	"""
-	nemenyi_df = pd.read_csv(StringIO(pkgres.read_text(pkg_data, 'nemenyi.csv')))
+	nemenyi_df = pd.read_csv('nemenyi.csv')
 	q_a = nemenyi_df['%.2f' % alpha][nemenyi_df['k'] == k].values
 	return q_a[0] * np.sqrt((k * (k + 1)) / (6 * n))
+
 
 def friedmanNemenyi(data: np.ndarray, names: Optional[np.ndarray] = None, q: float = .05, s: float = .1, ax: Optional[mpl.axes.Axes] = None, ylabel: str = 'Average rank', xlabel: str = 'Algorithm') -> None:
 	r"""Plot Friedman Nemenyi plot.
@@ -99,6 +100,7 @@ def friedmanNemenyi(data: np.ndarray, names: Optional[np.ndarray] = None, q: flo
 	ax.set_xticks([s * i for i in range(len(names))]), ax.set_xticklabels(names)
 	ax.set_ylabel(ylabel), ax.set_xlabel(xlabel)
 
+
 def wilcoxonTest(data: np.ndarray, names: np.ndarray, q: Optional[float] = None) -> pd.DataFrame:
 	r"""Get p-values or tagged differences bettwen algorithms.
 
@@ -115,5 +117,6 @@ def wilcoxonTest(data: np.ndarray, names: np.ndarray, q: Optional[float] = None)
 		for i in range(df.shape[0]):
 			for j in range(df.shape[1]): df.iloc[i, j] = '+' if df.iloc[i, j] <= q else '-'
 	return df
+
 
 # vim: tabstop=3 noexpandtab shiftwidth=3 softtabstop=3
