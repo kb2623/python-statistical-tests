@@ -52,6 +52,14 @@ def wilcoxonSignedRanks(a: np.ndarray, b: np.ndarray) -> Tuple[float, float, flo
 
 
 def friedmanRanks(*arrs: List[np.ndarray]) -> np.ndarray:
+	r"""Get ranks of the input data based on friedman test.
+
+	Args:
+		arrs: TODO.
+
+	Returns:
+		Ranks of the input data
+	"""
 	r = np.asarray([stats.rankdata([arrs[j][i] for j in range(len(arrs))]) for i in range(len(arrs[0]))])
 	return np.asarray([np.sum(r[:, i]) / len(arrs[0]) for i in range(len(arrs))])
 
