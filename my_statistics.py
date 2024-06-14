@@ -11,8 +11,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import matplotlib.lines as lines
 
-from basicunit import cm
-
 
 class BasicStatistics:
 	Name = ['BasicStatistics']
@@ -71,7 +69,7 @@ def cd(alpha: float, k: float, n: float) -> float:
 	return q_a[0] * np.sqrt((k * (k + 1)) / (6 * n))
 
 
-def friedmanNemenyi(data: np.ndarray, names: Optional[np.ndarray] = None, q: float = .05, s: float = .1, ax: Optional[mpl.axes.Axes] = None, ylabel: str = 'Average rank', xlabel: str = 'Algorithm') -> None:
+def nemenyiTest(data: np.ndarray, names: Optional[np.ndarray] = None, q: float = .05, s: float = .1, ax: Optional[mpl.axes.Axes] = None, ylabel: str = 'Average rank', xlabel: str = 'Algorithm') -> mpl.axes.Axes:
 	r"""Plot Friedman Nemenyi plot.
 
 	Args:
@@ -80,25 +78,20 @@ def friedmanNemenyi(data: np.ndarray, names: Optional[np.ndarray] = None, q: flo
 		q: TODO.
 		s: Scaling factor.
 		ax: TODO.
+
+	Returns:
+		Figure axes.
 	"""
 	cd_h = cd(q, len(data), len(data[0])) / 2.0
 	r = friedmanRanks(*data)
-	if ax is None: f, ax = plt.subplots(figsize=(10, 10))
-	if names is None: names = np.arange(len(data))
-	ax.xaxis.set_units(cm), ax.yaxis.set_units(cm)
-	for i, e in enumerate(r):
-		line = lines.Line2D([s * (i - .1) * cm, s * (i + .1) * cm], [(e + cd_h) * cm, (e + cd_h) * cm], lw=2, color='blue', axes=ax)
-		ax.add_line(line)
-		line = lines.Line2D([s * (i - .1) * cm, s * (i + .1) * cm], [(e - cd_h) * cm, (e - cd_h) * cm], lw=2, color='blue', axes=ax)
-		ax.add_line(line)
-		line = lines.Line2D([s * i * cm, s * i * cm], [(e - cd_h) * cm, (e + cd_h) * cm], lw=2, color='blue', axes=ax)
-		ax.add_line(line)
-		ax.plot(s * i, e, 'o', label=names[i])
-	ax.set_ylim((np.min(r) - cd_h - .25) * cm, (np.max(r) + cd_h + .25) * cm), ax.set_xlim((-0.1 * s) * cm, s * (len(r) - .9) * cm)
-	ax.xaxis.set_minor_locator(AutoMinorLocator(7)), ax.yaxis.set_minor_locator(AutoMinorLocator(7))
-	ax.grid(which='both'), ax.grid(which='minor', alpha=0.2, linestyle=':'), ax.grid(which='major', alpha=0.5, linestyle='--')
-	ax.set_xticks([s * i for i in range(len(names))]), ax.set_xticklabels(names)
-	ax.set_ylabel(ylabel), ax.set_xlabel(xlabel)
+	if not ax: f, ax = plt.subplots(figsize=(10, 10))
+	if not names: names = np.arange(len(data))
+	for i, e in enumerate(r): ax.errorbar(i, e, cd_h, fmt='o', linewidth=2, capsize=6, label=names[i])
+	ax.set_xticklabels(['', *names])
+	ax.set_xlabel(xlabel)
+	ax.set_ylabel(ylabel)
+	ax.grid(True, which='both', axis='y', linestyle='--')
+	return ax
 
 
 def wilcoxonTest(data: np.ndarray, names: np.ndarray, q: Optional[float] = None) -> pd.DataFrame:
